@@ -1,0 +1,8 @@
+#!/bin/bash
+echo "Seting up the repositories required for installing puppet"
+rpm -ivh https://yum.puppetlabs.com/puppetlabs-release-pc1-el-7.noarch.rpm
+echo "installing puppet packages"
+yum -y install puppet-agent
+echo "Starting the puppet service"
+echo "<replace this with the puppet server ip> puppet" >> /etc/hosts
+/opt/puppetlabs/puppet/bin/puppet agent --test

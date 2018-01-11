@@ -1,0 +1,17 @@
+- hosts: haproxy
+  become: true
+  tasks:
+    - name: list the ip's
+      debug: msg="{{ item }} and its name is {{ hostvars[item]['name'] }}"
+      with_items:
+          - "{{ groups['webserver'] }}"
+
+    - name: Installing the HA Proxy Package
+      yum: name=haproxy state=installed
+
+    - name: copying the template
+      template: src=haproxy.cfg dest=/etc/haproxy/haproxy.cfg
+      notify: Restart the haproxy service
+  handlers:
+     - name: Restart the haproxy service
+       service: name=haproxy state=restarted enabled=true
