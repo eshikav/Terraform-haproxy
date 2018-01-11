@@ -1,0 +1,2 @@
+- name: Starting the mysql client on all the slave nodes
+  service: name=mysql state=started enabled=true

@@ -1,0 +1,27 @@
+- hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Waiting for the ssh to come up
+      wait_for: port=22 host="{{ item }}" delay=2
+      with_items:
+          - "{{ groups['database'] }}"
+      tags:
+        - master
+        - slave
+
+- hosts: database[0]
+  remote_user: ec2-user
+  become: true
+  roles:
+    - galera-bootstrap
+  tags:
+    - master
+
+- hosts: database[1:]
+  remote_user: ec2-user
+  become: true
+  roles:
+    - galera-cluster
+  tags:
+    - slave
+

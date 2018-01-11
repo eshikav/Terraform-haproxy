@@ -1,0 +1,48 @@
+- name: Copying the repo files for the installation of the Galera Cluster
+  copy: src=mariadb.repo dest=/etc/yum.repos.d/
+
+- name: Checking the SELINUX state
+  shell: getenforce
+  register: selinux
+
+- debug: msg="{{ selinux.stdout }}"
+
+- name: Disabling SELINUX 
+  selinux: state=disabled
+  when: selinux.stdout == "Enforcing"
+
+
+- name: Restart server
+  shell: sleep 2 && /sbin/shutdown -r now "Ansible system package upgraded"
+  async: 1
+  poll: 0
+  when: selinux.stdout == "Enforcing"
+
+- name: "Wait for reboot"
+  local_action: wait_for host={{ inventory_hostname }} port=22 delay=2 state=started
+  become: false
+  when: selinux.stdout == "Enforcing"
+
+
+#- name: Removing already existing mariadb packages
+#  yum: name="mariadb-*" state=absent
+
+- name: Installing the packages for the Galera Cluster
+  yum: name={{ item }} state=installed
+  with_items:
+      - https://www.rpmfind.net/linux/centos/6.9/os/x86_64/Packages/boost-program-options-1.41.0-28.el6.x86_64.rpm
+      - MariaDB-Galera-server 
+      - MariaDB-client 
+      - galera
+
+- name: Starting the mysql service
+  service: name=mysql state=started
+
+- name: Securing the mysql installation
+  script: mariadb_secure.sh "{{ my_sql_password }}"
+
+- name: Stopping the mysql service
+  service: name=mysql state=stopped
+ 
+- name: Copying the Galera Cluster configurations
+  template: src=server.cnf dest=/etc/my.cnf.d/

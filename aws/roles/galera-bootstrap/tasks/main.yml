@@ -1,0 +1,8 @@
+- name: Bootstapping the first node of the Galera Cluster
+  shell: /etc/init.d/mysql bootstrap;touch /etc/init.d/.mysql_bootstrap
+  args:
+    creates: "/etc/init.d/.mysql_bootstrap"
+
+- name: Starting the Mysql service on the first node
+  service: name=mysql state=started enabled=true
+     
